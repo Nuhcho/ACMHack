@@ -35,6 +35,7 @@ export default function HomePage() {
     const {setTheme} = useTheme();
     const [file, setFile] = useState<File | null>(null);
     const [categoryKey, setCategoryKey] = useState(0);
+    const [id, setID] = useState(-1);
 
     useEffect(() => {
         setTheme(selectedCancer);
@@ -43,6 +44,27 @@ export default function HomePage() {
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             setFile(e.target.files[0]);
+        }
+    };
+
+    const retrieveEval = async (id: number) => {
+        let jsonToSend = {"id": id}
+        try {
+            const response = await fetch("http://localhost:8000/predict/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(jsonToSend),
+            });
+            if (!response.ok) {
+                alert("Request failed");
+            } else {
+                const data = await response.json();
+                alert("Result: " + JSON.stringify(data));
+            }
+        } catch (error) {
+            alert("Error: " + error);
         }
     };
 
@@ -61,6 +83,7 @@ export default function HomePage() {
             } else {
                 const data = await response.json();
                 alert("Upload successful: " + JSON.stringify(data));
+                setID(data.id);
             }
         } catch (error) {
             alert(error);
@@ -165,6 +188,13 @@ export default function HomePage() {
                             >
                                 Analyze Image
                             </Button>
+                            <Button
+                                className="w-full transition-colors duration-300 hover:bg-blue-600"
+                                onClick={() => retrieveEval(id)}
+                                disabled={id == -1}
+                            >
+                                Get Result
+                            </Button>
                         </CardContent>
                     </Card>
 
@@ -215,5 +245,6 @@ export default function HomePage() {
                 </motion.div>
             </div>
         </>
-    );
+    )
+        ;
 }
