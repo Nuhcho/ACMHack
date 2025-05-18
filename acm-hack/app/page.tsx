@@ -7,6 +7,8 @@ import {useTheme} from "@/app/theme-context";
 import {motion, AnimatePresence} from "framer-motion";
 import Image from "next/image";
 
+//begin
+
 const cancerTypes = ["Stomach", "Lung", "Breast", "Colon", "Prostate", "Liver"];
 const cancerEmojis: Record<string, string> = {
     stomach: "\uD83C\uDF7D️",
@@ -346,3 +348,5 @@ export default function HomePage() {
     )
         ;
 }
+
+
