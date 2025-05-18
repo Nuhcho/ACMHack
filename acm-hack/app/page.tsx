@@ -83,7 +83,7 @@ export default function HomePage() {
     };
 
     const retrieveEval = async (id: number) => {
-        let jsonToSend = { id };
+        let jsonToSend = {id};
         try {
             const response = await fetch("http://localhost:8000/predict/", {
                 method: "POST",
@@ -96,8 +96,16 @@ export default function HomePage() {
                 alert("Request failed");
             } else {
                 const data = await response.json();
-                setResultType(data.type); // Use the returned type for tissue description
-                alert("Result: " + JSON.stringify(data));
+                //alert("Result: " + JSON.stringify(data));
+                let weights = data.classification;
+                let maxIndex = 0;
+                for (let i = 1; i < weights.length; i++) {
+                    if (weights[maxIndex] < weights[i]) {
+                        maxIndex = i;
+                    }
+                }
+                setResultType(['ADI', 'MUS', 'NOR', 'DEB', 'LYM', 'MUC', 'STR', 'TUM'][maxIndex]);
+                return resultType;
             }
         } catch (error) {
             alert("Error: " + error);
@@ -242,7 +250,7 @@ export default function HomePage() {
                         </div>
                     )}
 
-                   {/* <div className="max-w-3xl w-full mx-auto mt-10">
+                    {/* <div className="max-w-3xl w-full mx-auto mt-10">
                         <Card className="bg-card text-card-foreground shadow-lg transition-all duration-300 hover:scale-[1.01]">
                             <CardContent className="space-y-4 p-6">
                                 <CardTitle className="text-2xl font-bold mb-2">
