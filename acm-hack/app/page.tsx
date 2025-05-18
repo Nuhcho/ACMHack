@@ -17,6 +17,17 @@ const cancerEmojis: Record<string, string> = {
     liver: "\uD83E\uDDEC",
 };
 
+const tissueDescriptions: Record<string, string> = {
+    ADI: "ADI: Adipose (fat tissue) 🧈\nClusters of lipid-filled cells that store energy and provide cushioning around organs. In histology, adipose appears as large, clear vacuoles pushing the nucleus to the cell edge.",
+    DEB: "DEB: Debris (cellular waste) 🗑️\nFragments of dead cells and extracellular material left behind after tissue breakdown. Often seen as irregular, granular clumps outside healthy cells.",
+    LYM: "LYM: Lymphocytes (immune cells) 🛡️\nSmall, round white blood cells responsible for mounting immune responses. They have a dense nucleus and scant cytoplasm, congregating where inflammation occurs.",
+    MUC: "MUC: Mucus (protective secretion) 🧴\nGel-like substance secreted by epithelial cells that lubricates and protects tissue surfaces. Appears as amorphous, lightly stained pools between cells.",
+    MUS: "MUS: Smooth Muscle (muscle tissue) 💪\nSpindle-shaped cells forming layers in the colon wall that help propel contents. Under microscope, they’re elongated with centrally placed nuclei.",
+    NORM: "NORM: Normal Colon Mucosa (healthy tissue for reference) 🌱\nWell-organized epithelial lining with regular glandular crypts and uniform cell shape. Serves as the baseline “healthy” pattern against which pathology is judged.",
+    STR: "STR: Cancer-associated Stroma (connective tissue around the tumor) 🕸️\nFibrous support tissue co-opted by a growing tumor, rich in collagen, blood vessels, and fibroblasts. Often shows desmoplastic (scar-like) changes and supports tumor invasion.",
+    TUM: "TUM: Tumor (cancerous tissue) 🦠\nDensely packed, irregularly shaped cells exhibiting abnormal nuclei and loss of normal architecture. Indicates active neoplastic growth and invasion potential.",
+};
+
 function TitleWithEmoji({selectedCancer, title}: { selectedCancer: string; title: string }) {
     const emoji = cancerEmojis[selectedCancer] || "\uD83E\uDDEC";
     return (
@@ -36,6 +47,8 @@ export default function HomePage() {
     const [file, setFile] = useState<File | null>(null);
     const [categoryKey, setCategoryKey] = useState(0);
     const [id, setID] = useState(-1);
+    const [resultType, setResultType] = useState<string | null>(null);
+    const [resultDescription, setResultDescription] = useState<string>("");
 
     useEffect(() => {
         setTheme(selectedCancer);
@@ -44,27 +57,6 @@ export default function HomePage() {
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             setFile(e.target.files[0]);
-        }
-    };
-
-    const retrieveEval = async (id: number) => {
-        let jsonToSend = {"id": id}
-        try {
-            const response = await fetch("http://localhost:8000/predict/", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(jsonToSend),
-            });
-            if (!response.ok) {
-                alert("Request failed");
-            } else {
-                const data = await response.json();
-                alert("Result: " + JSON.stringify(data));
-            }
-        } catch (error) {
-            alert("Error: " + error);
         }
     };
 
@@ -83,18 +75,54 @@ export default function HomePage() {
             } else {
                 const data = await response.json();
                 alert("Upload successful: " + JSON.stringify(data));
-                setID(data.id);
+                setID(data.id); // Save the returned ID for prediction
             }
         } catch (error) {
             alert(error);
         }
     };
 
+    const retrieveEval = async (id: number) => {
+        let jsonToSend = { id };
+        try {
+            const response = await fetch("http://localhost:8000/predict/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(jsonToSend),
+            });
+            if (!response.ok) {
+                alert("Request failed");
+            } else {
+                const data = await response.json();
+                setResultType(data.type); // Use the returned type for tissue description
+                alert("Result: " + JSON.stringify(data));
+            }
+        } catch (error) {
+            alert("Error: " + error);
+        }
+    };
+
+    useEffect(() => {
+        if (resultType && tissueDescriptions[resultType]) {
+            setResultDescription(tissueDescriptions[resultType]);
+        } else {
+            setResultDescription("");
+        }
+    }, [resultType]);
+
     const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const value = e.target.value;
         setSelectedCancer(value);
         setCategoryKey(prev => prev + 1); // Triggers re-animation
     };
+
+    useEffect(() => {
+        // You can fetch or log information about gastrointestinal cancer types here.
+        // For now, we'll just log a message.
+        console.log("Gastrointestinal cancer info: Stomach, Colon, Liver, etc.");
+    }, []);
 
     return (
         <>
@@ -207,6 +235,57 @@ export default function HomePage() {
                     >
                         {/* Future: Display heatmap or result components here */}
                     </motion.div>
+
+                    {resultDescription && (
+                        <div className="max-w-2xl mx-auto my-6 p-4 bg-muted rounded shadow">
+                            <pre className="whitespace-pre-wrap text-base">{resultDescription}</pre>
+                        </div>
+                    )}
+
+                   {/* <div className="max-w-3xl w-full mx-auto mt-10">
+                        <Card className="bg-card text-card-foreground shadow-lg transition-all duration-300 hover:scale-[1.01]">
+                            <CardContent className="space-y-4 p-6">
+                                <CardTitle className="text-2xl font-bold mb-2">
+                                    Histological Tissue Types & Their Meanings
+                                </CardTitle>
+                                <ul className="space-y-3 text-base">
+                                    <li>
+                                        <span className="font-semibold">ADI: Adipose (fat tissue) 🧈</span><br />
+                                        Clusters of lipid-filled cells that store energy and provide cushioning around organs. In histology, adipose appears as large, clear vacuoles pushing the nucleus to the cell edge.
+                                    </li>
+                                    <li>
+                                        <span className="font-semibold">DEB: Debris (cellular waste) 🗑️</span><br />
+                                        Fragments of dead cells and extracellular material left behind after tissue breakdown. Often seen as irregular, granular clumps outside healthy cells.
+                                    </li>
+                                    <li>
+                                        <span className="font-semibold">LYM: Lymphocytes (immune cells) 🛡️</span><br />
+                                        Small, round white blood cells responsible for mounting immune responses. They have a dense nucleus and scant cytoplasm, congregating where inflammation occurs.
+                                    </li>
+                                    <li>
+                                        <span className="font-semibold">MUC: Mucus (protective secretion) 🧴</span><br />
+                                        Gel-like substance secreted by epithelial cells that lubricates and protects tissue surfaces. Appears as amorphous, lightly stained pools between cells.
+                                    </li>
+                                    <li>
+                                        <span className="font-semibold">MUS: Smooth Muscle (muscle tissue) 💪</span><br />
+                                        Spindle-shaped cells forming layers in the colon wall that help propel contents. Under microscope, they’re elongated with centrally placed nuclei.
+                                    </li>
+                                    <li>
+                                        <span className="font-semibold">NORM: Normal Colon Mucosa (healthy tissue for reference) 🌱</span><br />
+                                        Well-organized epithelial lining with regular glandular crypts and uniform cell shape. Serves as the baseline “healthy” pattern against which pathology is judged.
+                                    </li>
+                                    <li>
+                                        <span className="font-semibold">STR: Cancer-associated Stroma (connective tissue around the tumor) 🕸️</span><br />
+                                        Fibrous support tissue co-opted by a growing tumor, rich in collagen, blood vessels, and fibroblasts. Often shows desmoplastic (scar-like) changes and supports tumor invasion.
+                                    </li>
+                                    <li>
+                                        <span className="font-semibold">TUM: Tumor (cancerous tissue) 🦠</span><br />
+                                        Densely packed, irregularly shaped cells exhibiting abnormal nuclei and loss of normal architecture. Indicates active neoplastic growth and invasion potential.
+                                    </li>
+                                </ul>
+                            </CardContent>
+                        </Card>
+                    </div>*/}
+
                     <footer className="w-full text-center text-sm text-gray-500 mt-12">
                         <div>
                             React + Next &middot; Django &middot; &copy; {new Date().getFullYear()} Tumor? I Hardly Know
