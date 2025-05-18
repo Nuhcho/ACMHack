@@ -177,11 +177,21 @@ export default function HomePage() {
                     >
                         {/* Future: Display heatmap or result components here */}
                     </motion.div>
-
                     <footer className="w-full text-center text-sm text-gray-500 mt-12">
                         <div>
                             React + Next &middot; Django &middot; &copy; {new Date().getFullYear()} Tumor? I Hardly Know
                             Her
+                        </div>
+                        <div className="flex justify-center gap-4 mt-8 py-4">
+                            <Button asChild variant="outline" className="w-48">
+                                <a href="/about">About</a>
+                            </Button>
+                            <Button asChild variant="outline" className="w-48">
+                                <a href="/info">Info</a>
+                            </Button>
+                            <Button asChild variant="outline" className="w-48">
+                                <a href="/home">Home</a>
+                            </Button>
                         </div>
                         <div className="space-x-2">
                             <a
@@ -211,6 +221,7 @@ export default function HomePage() {
                                 Contact Us
                             </a>
                         </div>
+                        {/* Navigation Buttons */}
                     </footer>
                 </motion.div>
             </div>
